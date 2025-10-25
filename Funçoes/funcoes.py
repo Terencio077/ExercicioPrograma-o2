@@ -1,63 +1,78 @@
 def define_posicoes(linha, coluna, orientacao, tamanho):
-    posicoes = []
-    for i in range(tamanho):
-        if orientacao == 'vertical':
-            posicoes.append([linha + i, coluna])
-        elif orientacao == 'horizontal':
-            posicoes.append([linha, coluna + i])
-    return posicoes
+    listafinal = []
+    if orientacao == 'vertical':
+        for i in range(tamanho):
+            listafinal.append([linha + i, coluna])
+    elif orientacao == 'horizontal':
+        for i in range(tamanho):
+            listafinal.append([linha, coluna + i])
+    return listafinal
+
 
 def preenche_frota(frota, nome_navio, linha, coluna, orientacao, tamanho):
-    posicoes_navio = define_posicoes(linha, coluna, orientacao, tamanho)
+    navio_posicao = define_posicoes(linha, coluna, orientacao, tamanho)
     if nome_navio not in frota:
-        frota[nome_navio] = []
-    frota[nome_navio].append(posicoes_navio)
-    return frota
-def faz_jogada(tabuleiro, linha, coluna):
-    if tabuleiro[linha][coluna] == 1:
-        tabuleiro[linha][coluna] = 'X'
+        frota[nome_navio] = [navio_posicao]
     else:
+        frota[nome_navio].append(navio_posicao)
+    return frota
+
+
+def faz_jogada(tabuleiro, linha, coluna):
+    if tabuleiro[linha][coluna] == 0:
         tabuleiro[linha][coluna] = '-'
+    elif tabuleiro[linha][coluna] == 1:
+        tabuleiro[linha][coluna] = 'X'
     return tabuleiro
+
+
 def posiciona_frota(frota):
-    grid = [[0 for _ in range(10)] for _ in range(10)]
-    for navio in frota.values():
-        for posicoes in navio:
-            for linha, coluna in posicoes:
-                grid[linha][coluna] = 1
-    return grid
+    tabuleiro = [[0] * 10 for i in range(10)]
+
+    for tipo in frota:
+        for unidade in frota[tipo]:
+            for i in range(10):
+                for j in range(10):
+                    if [i, j] in unidade:
+                        tabuleiro[i][j] = 1
+    return tabuleiro
+
+
 def afundados(frota, tabuleiro):
-    contador = 0
-    for navios in frota.values():
-        for posicoes in navios:
+    quantos_afundados = 0
+    for tipo in frota:
+        for navio in frota[tipo]:
             afundado = True
-            for linha, coluna in posicoes:
-                if tabuleiro[linha][coluna] != 'X':
+            for posicao in navio:
+                if tabuleiro[posicao[0]][posicao[1]] == 1:
                     afundado = False
+                    continue
             if afundado:
-                contador += 1
-    return contador
-def define_posicoes(linha, coluna, orientacao, tamanho):
-    posicoes = []
-    for i in range(tamanho):
-        if orientacao == 'vertical':
-            posicoes.append([linha + i, coluna])
-        elif orientacao == 'horizontal':
-            posicoes.append([linha, coluna + i])
-    return posicoes
+                quantos_afundados += 1
+    return quantos_afundados
+
 
 def posicao_valida(frota, linha, coluna, orientacao, tamanho):
-    posicoes = define_posicoes(linha, coluna, orientacao, tamanho)
-    for l, c in posicoes:
-        if not (0 <= l < 10 and 0 <= c < 10):
+    navionovo = define_posicoes(linha, coluna, orientacao, tamanho)
+    for i in range(len(navionovo)):
+        if navionovo[i][0] > 9 or navionovo[i][1] > 9:
             return False
-    ocupadas = set()
-    for navios in frota.values():
-        for p in navios:
-            for l, c in p:
-                ocupadas.add((l, c))
-    for l, c in posicoes:
-        if (l, c) in ocupadas:
-            return False
+    for i in range(len(navionovo)):
+        for tipo in frota:
+            for j in range(len(frota[tipo])):
+                for k in range(len(frota[tipo][j])):
+                    if frota[tipo][j][k] == navionovo[i]:
+                        return False
+    return True
     return True
 
+def monta_tabuleiros(tabuleiro_jogador, tabuleiro_oponente):
+    texto = ''
+    texto += '   0  1  2  3  4  5  6  7  8  9         0  1  2  3  4  5  6  7  8  9\n'
+    texto += '_______________________________      _______________________________\n'
+
+    for linha in range(len(tabuleiro_jogador)):
+        jogador_info = '  '.join([str(item) for item in tabuleiro_jogador[linha]])
+        oponente_info = '  '.join([info if str(info) in 'X-' else '0' for info in tabuleiro_oponente[linha]])
+        texto += f'{linha}| {jogador_info}|     {linha}| {oponente_info}|\n'
+    return texto
